@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD5加密器</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #e6e9f0;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* 采用清晰易读的字体 */
+            padding: 20px 0; /* 页面顶部和底部留出一些间距 */
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #FFFFFF; /* 容器背景设为纯白色，确保内容区域突出 */
+            padding: 25px;
+            border-radius: 8px; /* 轻微的圆角效果 */
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); /* 细微的阴影效果，增加层次感 */
+        }
+
+        h2 {
+            color: #007BFF; /* 使用Bootstrap的主题蓝色作为标题颜色 */
+            margin-bottom: 20px; /* 标题下方留出更多空间 */
+            text-align: center; /* 标题居中显示 */
+        }
+
+        .field-row {
+            display: flex;
+            gap: 10px; /* 字段之间留出适当的间隙 */
+            margin-bottom: 15px; /* 字段行之间留出间隙 */
+        }
+
+        .input-group-text, .form-control {
+            border-radius: 5px; /* 给输入框和组件添加轻微的圆角 */
+            border: 1px solid #CED4DA; /* 输入框边框颜色 */
+        }
+        #fieldsContainer { margin-top: 15px; }
+        .btn-primary {
+            width: 100%; /* 提交按钮宽度为100% */
+            border-radius: 5px; /* 按钮圆角 */
+            background-color: #007BFF; /* 按钮背景颜色，使用Bootstrap主题蓝 */
+            border: none; /* 移除按钮边框 */
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3; /* 鼠标悬停时按钮的背景颜色 */
+        }
+
+        .result-text {
+            word-break: break-all; /* 确保长文本能够在容器内正确折行 */
+            white-space: normal;
+        }
+    </style>
+</head>
+<body>
+     <div class="container">
+        <h2 class="text-center mb-4">MD5 加密器</h2>
+        <div>
+            <label for="numFields" class="form-label">字段数量</label>
+            <select id="numFields" name="numFields" class="form-select" onchange="updateFields()">
+                <option value="0">请选择</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        </div>
+        <form id="encryptForm" onsubmit="submitForm(); return false;">
+            <div id="fieldsContainer"></div>
+            <button type="submit" class="btn btn-primary mt-3 w-100">加密</button>
+        </form>
+        <div id="resultContainer" class="mt-4"></div>
+    </div>
+
+    <script>
+         function updateFields() {
+            const numFields = document.getElementById('numFields').value;
+            const fieldsContainer = document.getElementById('fieldsContainer');
+            fieldsContainer.innerHTML = '';
+
+            for (let i = 0; i < numFields; i++) {
+                const row = document.createElement('div');
+                row.className = 'field-row';
+
+                const fieldNameInput = document.createElement('input');
+                fieldNameInput.setAttribute('type', 'text');
+                fieldNameInput.className = 'form-control';
+                fieldNameInput.placeholder = `字段 ${i + 1} 名称`;
+                //fieldNameInput.disabled = true; // 自定义字段名仅作视觉提示，不参与输入
+
+                const fieldValueInput = document.createElement('input');
+                fieldValueInput.setAttribute('type', 'text');
+                fieldValueInput.className = 'form-control';
+                fieldValueInput.name = `fields[]`;
+                fieldValueInput.placeholder = `字段 ${i + 1} 值`;
+                fieldValueInput.required = true;
+
+                row.append(fieldNameInput, fieldValueInput);
+                fieldsContainer.appendChild(row);
+            }
+        }
+
+        function submitForm() {
+            if (!document.getElementById('encryptForm').checkValidity()) {
+                document.getElementById('encryptForm').reportValidity();
+                return; // 表单有未填写字段，阻止提交
+            }
+
+            const formData = new FormData(document.getElementById('encryptForm'));
+            const searchParams = new URLSearchParams();
+
+            for (const pair of formData) {
+                searchParams.append(pair[0], pair[1]);
+            }
+
+            fetch('/encrypt', {
+                method: 'POST',
+                body: searchParams,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultContainer = document.getElementById('resultContainer');
+                // 确保使用 .result-text 类的元素包裹结果文本
+                resultContainer.innerHTML = `<p class="result-text">原始字符串: ${data.original_string}</p><p class="result-text">MD5加密结果: ${data.md5_result}</p>`;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
